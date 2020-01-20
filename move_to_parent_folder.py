@@ -4,7 +4,7 @@ from pathlib import Path
 
 from utils import rename
 
-excluded_extensions = ('.ini', '.txt', '.DS_Store', '.pdf', '.png', '.jpeg', '.jpg')
+excluded_extensions = ('.ini', '.txt', '.DS_Store', '.DS Store', '.pdf', '.png', '.jpeg', '.jpg')
 WRITE_PERMISSION = stat.S_IWUSR
 
 
@@ -21,6 +21,7 @@ def clean_folders(root):
     for file in root.iterdir():
         if is_exluded_type(file):
             print(file, 'deleted')
+            file.chmod(WRITE_PERMISSION)
             file.unlink()
         elif file.name.strip(' _') == 'MACOSX':
             print(file, 'deleted')
@@ -49,7 +50,7 @@ def move_to_parent(root):
 
 
 if __name__ == '__main__':
-    root = Path('D:\\') / 'Musica' / 'Packki'
+    root = Path('D:\\') / 'Musica' / 'Drive'
     if root.exists():
         print('Cleaning all folders from unwanted files...')
         print('----------------------------------------------------------------------------')
@@ -58,6 +59,7 @@ if __name__ == '__main__':
 
         print('Moving the content of the top_level folders to remove not needed folders...')
         print('----------------------------------------------------------------------------')
-        move_to_parent(root)
+        for directory in root.iterdir():
+            move_to_parent(directory)
     else:
         print("The selected path doesn't exists({root}).".format(root=root))

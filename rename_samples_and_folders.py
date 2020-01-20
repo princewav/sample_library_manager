@@ -31,7 +31,7 @@ def rename_all_files_and_directories(root, indentation=0):
 
 
 if __name__ == '__main__':
-    root = Path('D:\\') / 'Musica' / 'Packki'
+    root = Path('D:\\') / 'Musica' / 'Drive'
     if root.exists():
         print('Renaming all files and directories to replace undescores with spaces'
               'and to capitalize lowercase words...')
