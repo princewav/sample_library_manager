@@ -3,40 +3,43 @@ import stat
 from shutil import move, rmtree
 from pathlib import Path
 
+from utils import *
+
 excluded_extensions = ('.ini', '.txt', '.DS_Store', '.pdf', '.png', '.jpeg', '.jpg')
 
 
 def fix_name(file):
-    new_name_list = file.name.replace('_', ' ').split(' ')
-    result = []
-    for word in new_name_list:
-        if word.upper() == word:
-            result.append(word)
+    new_name = capitalize(replace_underscores(file.name))
+    new_file = rename(file, new_name)
+    return new_file
+
+
+def rename_all_files_and_directories(root, indentation=0):
+    directories = []
+    print(root)
+    for file in root.iterdir():
+        if file.name == '.DS_Store':
+            file.unlink()
+            continue
+
+        new_file = fix_name(file)
+        if file != new_file:
+            print(f'{"----" * indentation} {file.name} -> {new_file.name}')
         else:
-            result.append(word.lower().capitalize())
-    new_name = ' '.join(result)
-    try:
-        file.rename(file.parent / new_name)
-    except Exception as e:
-        print(e)
+            print(f'{"----" * indentation} {file.name}')
 
+        if new_file.is_dir():
+            directories.append(new_file)
 
-def rename_all_only_files(file):
-    for file in root.iterdir():
-        fix_name(file)
-
-
-def rename_all(root):
-    for file in root.iterdir():
-        print(file)
-        fix_name(file)
-        if file.is_dir():
-            rename_all(file)
-            rename_all_only_files(file)
+    for directory in directories:
+        rename_all_files_and_directories(directory, indentation + 1)
 
 
 if __name__ == '__main__':
-    # root = Path('D:\\') / 'Musica' / 'gdhfdfhdffhdhfdfhdhfdfhd' / 'Sample Packs'
     root = Path('D:\\') / 'Musica' / 'Packki'
-    for i in range(1):
-        rename_all(root)
+    if root.exists():
+        print('Renaming all files and directories to replace undescores with spaces'
+              'and to capitalize lowercase words...')
+        rename_all_files_and_directories(root)
+    else:
+        print("The selected path doesn't exists({root}).".format(root=root))

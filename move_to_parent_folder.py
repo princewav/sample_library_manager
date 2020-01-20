@@ -4,50 +4,62 @@ import stat
 from shutil import move, rmtree
 from pathlib import Path
 
+from utils import rename
+
 excluded_extensions = ('.ini', '.txt', '.DS_Store', '.pdf', '.png', '.jpeg', '.jpg')
+WRITE_PERMISSION = stat.S_IWUSR
+
+
+def count_elements(directory):
+    return len(list(directory.iterdir()))
+
+
+def is_exluded_type(file):
+    return any([file.name.endswith(ext) for ext in excluded_extensions])
 
 
 def clean_folders(root):
-    for sub_folder in root.iterdir():
-        if len(list(sub_folder.iterdir())) < 3:
-            for file in sub_folder.iterdir():
-                if any([file.name.endswith(ext) for ext in excluded_extensions]):
-                    print(file, 'deleted')
-                    file.unlink()
-                elif file.name.strip() == 'MACOSX':
-                    print(file, 'deleted')
-                    rmtree(str(file))
+    directories = []
+    for file in root.iterdir():
+        if is_exluded_type(file):
+            print(file, 'deleted')
+            file.unlink()
+        elif file.name.strip(' _') == 'MACOSX':
+            print(file, 'deleted')
+            rmtree(str(file))
+
+        if file.is_dir():
+            directories.append(file)
+
+    for directory in directories:
+        clean_folders(directory)
 
 
 def move_to_parent(root):
-    for folder in root.iterdir():
-        if len(list(folder.iterdir())) < 2:
-            print('moving', folder)
-            for sub_folder in folder.iterdir():
-                for file in sub_folder.iterdir():
-                    try:
-                        move(str(file), str(folder / file.name))
-                    except shutil.Error:
-                        print(file, 'cartella duplicata')
-                rmtree(str(sub_folder))
+    if count_elements(root) == 1:
+        folder = list(root.iterdir())[0]
+        old_name = folder.name
+        folder = rename(folder, 'ao')
 
+        print(f'Moving all content of {old_name} in the parent folder')
+        for element in folder.iterdir():
+            element.replace(root / element.name)
 
-def delete_empty_subdirectories(root):
-    for folder in root.iterdir():
-        for subfolder in folder.iterdir():
-            if subfolder.is_dir() and len(list(subfolder.iterdir())) == 0:
-                try:
-                    print('deleting empty folder', subfolder)
-                    rmtree(str(subfolder))
-                except PermissionError:
-                    print(f'Error deleting {subfolder}, access_denied. Retrying with chmod.')
-                    os.chmod(str(subfolder), stat.S_IWUSR)
-                    rmtree(str(subfolder))
+        folder.chmod(WRITE_PERMISSION)
+        folder.rmdir()
+        move_to_parent(root)
 
 
 if __name__ == '__main__':
     root = Path('D:\\') / 'Musica' / 'Packki'
+    if root.exists():
+        print('Cleaning all folders from unwanted files...')
+        print('----------------------------------------------------------------------------')
+        clean_folders(root)
+        print()
 
-    clean_folders(root)
-    move_to_parent(root)
-    delete_empty_subdirectories(root)
+        print('Moving the content of the top_level folders to remove not needed folders...')
+        print('----------------------------------------------------------------------------')
+        move_to_parent(root)
+    else:
+        print("The selected path doesn't exists({root}).".format(root=root))
