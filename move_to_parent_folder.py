@@ -1,7 +1,5 @@
-import os
-import shutil
 import stat
-from shutil import move, rmtree
+from shutil import rmtree
 from pathlib import Path
 
 from utils import rename

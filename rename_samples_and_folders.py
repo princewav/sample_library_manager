@@ -1,11 +1,6 @@
-import os
-import stat
-from shutil import move, rmtree
 from pathlib import Path
 
 from utils import *
-
-excluded_extensions = ('.ini', '.txt', '.DS_Store', '.pdf', '.png', '.jpeg', '.jpg')
 
 
 def fix_name(file):
